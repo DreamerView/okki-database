@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite Interface</title>
+    <style>
+        /* Стиль для перетаскиваемого элемента */
+        .drag-region {
+            -webkit-app-region: drag;
+            user-select: none;
+        }
+        /* Исключение кнопок из области перетаскивания */
+        .no-drag {
+            -webkit-app-region: no-drag;
+        }
+    </style>
+</head>
+
+<body class="p-0" style="opacity: 0;">
+    <div class="modal fade" id="closeApp" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="closeAppLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="closeAppLabel">Confirm</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              Do you realy want to leave application?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn text-secondary" data-bs-dismiss="modal">Not</button>
+              <button type="button" class="btn btn-danger" onclick="closeWindow()">Yes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <div class="modal fade" id="mysqlModal" tabindex="-1" aria-labelledby="mysqlModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content" id="mysqlModalLabel">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">MySQL Connection</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <form id="mysqlForm" onsubmit="mysqlConnect(event)">
+                    <div class="modal-body">
+                            <div class="form-group">
+                                <label for="host">Host:</label>
+                                <input type="text" class="form-control" id="mysql_host" name="mysql_host" value="" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Username:</label>
+                                <input type="text" class="form-control" id="mysql_username" name="mysql_username" value="" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Port:</label>
+                                <input type="text" class="form-control" id="mysql_port" name="mysql_port" value="">
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password:</label>
+                                <input type="password" class="form-control" id="mysql_password" name="mysql_password" value="">
+                            </div>
+                            <div class="form-group">
+                                <label for="database">Database:</label>
+                                <input type="text" class="form-control" id="mysql_database" name="mysql_database" value="defaultdb" required>
+                            </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn text-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Connect</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="errorDataModal" tabindex="-1" aria-labelledby="errorDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content bg-danger text-white" id="errorData">
+                ...
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="insertDataModal" tabindex="-1" aria-labelledby="insertDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content" id="insertData">
+                ...
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="updateDataModal" tabindex="-1" aria-labelledby="updateDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content" id="updateData">
+                ...
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="dropDatabaseModal" tabindex="-1" aria-labelledby="dropDatabaseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content" id="dropDatabase">
+                ...
+            </div>
+        </div>
+    </div>
+    <header class="container-fluid py-2 drag-region" style="min-height:64px;">
+        <div class="row">
+            <div class="col-8">
+                <div class="d-flex flex-wrap gap-5 drag-region">
+                    <div class="d-flex gap-2 align-items-center">
+                        <img width="36" height="36" class="rounded-3" src="./logo.png" alt="">
+                        <h1 class="m-0 fs-3">Okki Database</h1>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center gap-3">
+                        <button onclick="toggleTheme()" type="button" class="no-drag btn btn-secondary d-flex align-items-center gap-2">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21.1816 14.8608C20.6584 16.3802 19.7573 17.7415 18.5631 18.8168C17.3688 19.892 15.9207 20.6458 14.355 21.0072C12.7892 21.3687 11.1572 21.3259 9.61249 20.883C8.06779 20.44 6.66115 19.6114 5.52486 18.4751C4.38857 17.3389 3.55998 15.9322 3.11703 14.3875C2.67408 12.8428 2.63132 11.2108 2.99278 9.64505C3.35423 8.07927 4.10802 6.63116 5.18325 5.43693C6.25848 4.2427 7.6198 3.34159 9.13919 2.81836C9.32351 2.74848 9.52375 2.73176 9.71711 2.77011C9.91047 2.80846 10.0892 2.90032 10.2329 3.03525C10.3766 3.17019 10.4795 3.34276 10.53 3.53332C10.5804 3.72388 10.5763 3.92478 10.5182 4.11313C10.0135 5.61508 9.98407 7.23611 10.434 8.75537C10.7606 9.90012 11.3738 10.9427 12.2156 11.7844C13.0573 12.6262 14.0999 13.2394 15.2446 13.566C16.7639 14.0159 18.3849 13.9865 19.8869 13.4818C20.0752 13.4237 20.2761 13.4196 20.4667 13.47C20.6572 13.5205 20.8298 13.6234 20.9647 13.7671C21.0997 13.9108 21.1915 14.0895 21.2299 14.2829C21.2682 14.4762 21.2515 14.6765 21.1816 14.8608Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg> 
+                            <span>Theme</span>  
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="d-flex gap-3 justify-content-end">
+                    <button type="button" class="no-drag btn bg-body-tertiary" style="width:50px;" onclick="hideWindow()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.5 12H4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button type="button" class="no-drag btn bg-body-tertiary" style="width:50px;" onclick="maxWindow()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2.75 15.4688V18.9375C2.75 19.5508 2.99364 20.139 3.42732 20.5727C3.86099 21.0064 4.44919 21.25 5.0625 21.25H8.53125" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M21.25 15.4688V18.9375C21.25 19.5508 21.0064 20.139 20.5727 20.5727C20.139 21.0064 19.5508 21.25 18.9375 21.25H15.4688" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2.75 8.53125V5.0625C2.75 4.44919 2.99364 3.86099 3.42732 3.42732C3.86099 2.99364 4.44919 2.75 5.0625 2.75H8.53125" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15.4688 2.75H18.9375C19.5508 2.75 20.139 2.99364 20.5727 3.42732C21.0064 3.86099 21.25 4.44919 21.25 5.0625V8.53125" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>       
+                    </button>
+                    <button type="button" class="no-drag btn btn-danger" style="width:50px;" data-bs-toggle="modal" data-bs-target="#closeApp">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 5L5 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M19 19L5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </header>
+    <main style="overflow-y:scroll;height:calc(100vh - 64px);">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12 col-lg-2 p-0">
+                    <div class="d-flex flex-column gap-3 p-3" style="position:sticky;">
+                        <h1 class="fs-4">All databases</h1>
+                        <div id="all-database" class="d-flex flex-column gap-3"></div>
+                        <div class="dropdown w-100">
+                            <button class="btn text-truncate text-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                + Add database
+                            </button>
+                            <ul class="dropdown-menu">
+                            <li><button id="add-database" class="dropdown-item">SQLite file upload</button></li>
+                            <li><button id="create-database" class="dropdown-item">SQLite file create</button></li>
+                            <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#mysqlModal">MySQL Connect</button></li>
+                            </ul>
+                        </div>
+                        <!-- <button id="add-database" class="mt-3 btn btn-outline-secondary w-100">+ Add database</button> -->
+                    </div>
+                </div>
+                <div class="col-12 col-lg-8 bg-body-tertiary rounded-4">
+                    <div class="bg-body my-2 p-3 rounded-4">
+                        <div id="selected-table"></div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-2 p-0">
+                    <div class="p-3" style="position: sticky;">
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <h1 class="fs-4 text-truncate m-0">
+                                All tables
+                            </h1>
+                            <button class="btn bg-body-tertiary rounded-3" onclick="tableUpdateHandler()">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M18.0244 16.9565C16.8534 18.124 15.3631 18.9186 13.7411 19.2402C12.1192 19.5618 10.4383 19.3961 8.91051 18.7638C7.38267 18.1315 6.07625 17.061 5.15593 15.6873C4.23562 14.3136 3.74262 12.6981 3.73911 11.0447" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"/>
+                                    <path d="M17.35 21.25L18.1817 17.8782C18.22 17.7312 18.228 17.578 18.2054 17.4278C18.1827 17.2776 18.13 17.1336 18.0501 17.0044C17.9703 16.8752 17.8651 16.7635 17.7409 16.6761C17.6168 16.5886 17.4761 16.5273 17.3276 16.4957L13.9557 15.6528" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5.97569 7.0434C7.14665 5.87597 8.63704 5.08143 10.259 4.75981C11.8808 4.43818 13.5617 4.60399 15.0895 5.23619C16.6174 5.86849 17.9238 6.93897 18.8442 8.31275C19.7644 9.68642 20.2574 11.3019 20.2609 12.9553" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"/>
+                                    <path d="M6.65008 2.75003L5.81837 6.12179C5.78012 6.26876 5.77207 6.42204 5.79468 6.57217C5.81729 6.7224 5.87011 6.86642 5.94995 6.9956C6.02978 7.12488 6.13497 7.23658 6.25917 7.32396C6.38337 7.41135 6.524 7.47272 6.67257 7.50431L10.0444 8.34717" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>                              
+                            </button>
+                            <button class="btn bg-body-tertiary rounded-3" onclick="hideTable()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 8.41693L10.5866 15.0037C10.9633 15.375 11.471 15.5831 12 15.5831C12.529 15.5831 13.0367 15.375 13.4134 15.0037L20 8.41693" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>                            
+                            </button>
+                        </div>
+                        <div id="all-table" class="flex-column gap-3" style="display:flex;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script type="module" src="./javascript/load.js"></script>
+</body>
+
+</html>

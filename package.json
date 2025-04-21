@@ -1,0 +1,45 @@
+{
+  "name": "sqlite-viewer",
+  "version": "16.0.0",
+  "description": "SQLite Viewer created by Okki.kz",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "chcp 65001 && electron .",
+    "build": "npm version major && electron-builder"
+  },
+  "build": {
+    "asar": true,
+    "appId": "com.okki.sqlite.app",
+    "productName": "Okki Database (Sqlite Version)",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "./frontend/logo.png",
+      "target": "nsis"
+    },
+    "msi": {
+      "perMachine": true
+    }
+  },
+  "keywords": [
+    "sqlite",
+    "viewer",
+    "okki"
+  ],
+  "author": "Okki.kz",
+  "license": "ISC",
+  "dependencies": {
+    "csv-writer": "^1.6.0",
+    "docx": "^8.5.0",
+    "exceljs": "^4.4.0",
+    "knex": "^3.1.0",
+    "mysql2": "^3.9.7",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "electron": "^30.0.6",
+    "electron-builder": "^24.13.3"
+  }
+}
